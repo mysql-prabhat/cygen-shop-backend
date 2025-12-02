@@ -1,0 +1,40 @@
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  name              String?
+  email             String?  @unique
+  emailVerified     DateTime?
+  image             String?
+  hashedPassword    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  role Role         @default(USER)
+
+  accounts          Account[]
+  orders            Order[]
+  reviews           Review[]
+}
+
+model Order {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  amount    Int
+  status    String       @default("pending")
+  items     OrderItem[]
+  createdAt DateTime     @default(now())
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String?
+  name      String
+  price     Int
+  qty       Int
+}

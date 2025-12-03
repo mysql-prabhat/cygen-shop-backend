@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Stripe from 'stripe';
 import { RedisService } from '../redis/redis.service';
-import { PrismaClient, Prisma  } from '@prisma/client';
+import { Product, Prisma  } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -17,9 +17,9 @@ export class OrdersService {
   }
 
   async listOrders(userId: string, search = '', page = 1, pageSize = 10) {
-    this.prisma.$on("query", (e) => {
-      console.log("SQL Query:", e.query);
-      console.log("Params:", e.params);
+    this.prisma.$use(async (params, next) => {
+      console.log('SQL Query:', params.model, params.action, params.args);
+      return next(params);
     });
     const skip = (page - 1) * pageSize;
     console.log('listOrders userId',userId);
@@ -54,11 +54,11 @@ export class OrdersService {
 
     const productIds = items.map((i) => i.productId);
 
-    const products: Prisma.Product[] = await this.prisma.product.findMany({
+    const products: Product[] = await this.prisma.product.findMany({
       where: { id: { in: productIds } },
     });
 
-    // ⭐ Properly typed Map
+    // Correct typing
     const map = new Map<string, Product>(
       products.map((p: Product) => [p.id, p]),
     );
@@ -97,6 +97,7 @@ export class OrdersService {
             productId: it.productId,
             quantity: it.quantity,
             unitPriceCents: it.unitPriceCents,
+            name: map.get(it.productId)?.name || '',
           },
         });
       }

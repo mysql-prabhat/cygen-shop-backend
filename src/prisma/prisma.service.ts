@@ -8,8 +8,9 @@ export class PrismaService extends PrismaClient
 
   async onModuleInit() {
     await this.$connect();
-    this.$on('query', (e) => {
-      console.log(`[Prisma Query] ${e.query} - ${e.duration}ms`);
+    this.$use(async (params, next) => {
+      console.log('SQL:', params.model, params.action, params.args);
+      return next(params);
     });
   }
 

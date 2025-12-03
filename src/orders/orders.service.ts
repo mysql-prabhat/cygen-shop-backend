@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Stripe from 'stripe';
 import { RedisService } from '../redis/redis.service';
-import { Product } from '@prisma/client';
+import { PrismaClient, Prisma  } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -30,8 +30,6 @@ export class OrdersService {
     } */
     console.log('where',JSON.stringify(where));
     
-    const itemQuery = await this.prisma.order.findMany();
-      console.log('itemQuery',itemQuery);
       
     const [items, total] = await this.prisma.$transaction([
       this.prisma.order.findMany({
@@ -56,7 +54,7 @@ export class OrdersService {
 
     const productIds = items.map((i) => i.productId);
 
-    const products: Product[] = await this.prisma.product.findMany({
+    const products: Prisma.Product[] = await this.prisma.product.findMany({
       where: { id: { in: productIds } },
     });
 

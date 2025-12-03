@@ -6,13 +6,9 @@ export class RedisService {
   private client: Redis;
 
   constructor() {
-    console.log('REDIS_HOST =>',process.env.REDIS_HOST);
+    console.log('REDIS_HOST =>',process.env.REDIS_URL);
     
-    this.client = new Redis({
-      host: process.env.REDIS_HOST || "http://127.0.0.1",
-      port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      password: process.env.REDIS_PASSWORD || undefined,
-    });
+    this.client = new Redis(process.env.REDIS_URL || "");
     //console.log('client =>',this.client);
   }
 

@@ -1,11 +1,18 @@
 import { Controller, Post, Body,Get,Req, Res, UseGuards  } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
+import { FastifyReply } from 'fastify';
+interface GoogleUser {
+  id: string;
+  email: string;
+  name?: string;
+}
+
 
 @Controller('api/auth')
 export class AuthController {
   constructor(private auth: AuthService) {}
-
+  
   @Post('register')
   register(@Body() body: { email: string; password: string }) {
     return this.auth.register(body.email, body.password);
@@ -23,9 +30,9 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res) {
+  async googleAuthRedirect(@Req() req:Request , @Res() reply: FastifyReply) {
     //return res.json(req.user);
-    const user = await this.auth.validateGoogleUser(req.user);
+    const user = await this.auth.validateGoogleUser((req as any).user as GoogleUser);
     const loginData:any = await this.auth.googleLogin(user);  
     console.log('loginData',loginData);
     console.log('access_token',loginData.access_token);
@@ -33,7 +40,7 @@ export class AuthController {
     console.log('user-',user);
     // Or use user.accessToken if you already created it
     //return res.json(token);
-    return  res.redirect(
+    return  reply.redirect(
       `http://localhost:3000/auth/google?userId=${user.id}&name=${user.name}&accessToken=${loginData.access_token}`,
     );
   }
